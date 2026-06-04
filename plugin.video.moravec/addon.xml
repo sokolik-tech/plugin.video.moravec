@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="plugin.video.moravec"
+       name="Moravec.cz"
+       version="1.0.0"
+       provider-name="webkodi">
+
+  <requires>
+    <import addon="xbmc.python" version="3.0.0"/>
+    <import addon="xbmc.gui" version="5.14.0"/>
+    <import addon="inputstream.adaptive" version="21.0.0" optional="true"/>
+  </requires>
+
+  <extension point="xbmc.python.pluginsource" library="addon.py">
+    <provides>video</provides>
+  </extension>
+
+  <extension point="xbmc.addon.metadata">
+    <summary lang="cs">Sledujte pořady Václava Moravce</summary>
+    <description lang="cs">Neoficiální Kodi plugin pro moravec.cz – nezávislá žurnalistika bez reklam. Přihlaste se svým účtem v nastavení pluginu.</description>
+    <platform>all</platform>
+    <license>GPL-3.0-only</license>
+    <language>cs</language>
+  </extension>
+
+</addon>

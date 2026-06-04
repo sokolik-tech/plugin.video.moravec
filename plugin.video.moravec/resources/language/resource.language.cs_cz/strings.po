@@ -1,0 +1,43 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgctxt "#32000"
+msgid "Účet"
+msgstr ""
+
+msgctxt "#32001"
+msgid "E-mail"
+msgstr ""
+
+msgctxt "#32002"
+msgid "Heslo"
+msgstr ""
+
+msgctxt "#32010"
+msgid "Přihlášení selhalo"
+msgstr ""
+
+msgctxt "#32011"
+msgid "Zkontrolujte e-mail a heslo v nastavení pluginu."
+msgstr ""
+
+msgctxt "#32012"
+msgid "Nepřihlášen"
+msgstr ""
+
+msgctxt "#32013"
+msgid "Zadejte e-mail a heslo v nastavení pluginu."
+msgstr ""
+
+msgctxt "#32020"
+msgid "Epizody"
+msgstr ""
+
+msgctxt "#32021"
+msgid "Chyba přehrávání"
+msgstr ""
+
+msgctxt "#32022"
+msgid "Nepodařilo se načíst video stream."
+msgstr ""
