@@ -16,6 +16,7 @@ import urllib.parse
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
+import xbmcvfs
 
 # Přidat resources/lib do sys.path
 import os
@@ -29,9 +30,9 @@ ADDON_ID = ADDON.getAddonInfo("id")
 PLUGIN_URL = sys.argv[0]
 HANDLE = int(sys.argv[1])
 
-# Cesta pro uložení auth tokenu mezi spuštěními
+# Přeložit Kodi special:// cestu na skutečnou filesystem cestu
 TOKEN_CACHE = os.path.join(
-    xbmcaddon.Addon().getAddonInfo("profile"), "token_cache.json"
+    xbmcvfs.translatePath(ADDON.getAddonInfo("profile")), "token_cache.json"
 )
 api.set_token_cache_path(TOKEN_CACHE)
 
@@ -58,23 +59,23 @@ def _ensure_authenticated() -> bool:
         return True
     except api.ApiError as e:
         if "not_authenticated" in str(e):
-            # Zkusit přihlásit se uloženými credentials
             email = ADDON.getSetting("email").strip()
             password = ADDON.getSetting("password").strip()
             if not email or not password:
                 xbmcgui.Dialog().ok(
-                    ADDON.getLocalizedString(32012),
-                    ADDON.getLocalizedString(32013),
+                    "Moravec.cz – nepřihlášen",
+                    "Zadejte e-mail a heslo v nastavení doplňku.",
                 )
                 ADDON.openSettings()
                 return False
             try:
                 api.sign_in(email, password)
                 return True
-            except api.ApiError:
+            except api.ApiError as auth_err:
                 xbmcgui.Dialog().ok(
-                    ADDON.getLocalizedString(32010),
-                    ADDON.getLocalizedString(32011),
+                    "Moravec.cz – chyba přihlášení",
+                    "Zkontrolujte e-mail a heslo.[CR]"
+                    f"Chyba: {str(auth_err)[:120]}",
                 )
                 ADDON.openSettings()
                 return False
