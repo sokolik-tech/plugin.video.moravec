@@ -19,6 +19,9 @@
     <platform>all</platform>
     <license>GPL-3.0-only</license>
     <language>cs</language>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
   </extension>
 
 </addon>
