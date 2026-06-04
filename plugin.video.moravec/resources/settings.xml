@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<settings version="2">
-  <section id="account">
-    <category id="general" label="32000">
-      <setting id="email" type="text" label="32001">
-        <default></default>
-      </setting>
-      <setting id="password" type="text" label="32002" option="hidden">
-        <default></default>
-      </setting>
-    </category>
-  </section>
+<settings>
+  <category label="Přihlášení">
+    <setting label="E-mail" type="text" id="email" default=""/>
+    <setting label="Heslo" type="text" id="password" option="hidden" default=""/>
+  </category>
 </settings>
