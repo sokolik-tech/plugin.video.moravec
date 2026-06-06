@@ -24,9 +24,9 @@ Testováno na **Raspberry Pi 5 + LibreELEC 12.x (Kodi 21 Omega)**.
 ### Způsob A – přes SSH (doporučeno pro LibreELEC)
 
 ```bash
-# Na vývojovém PC – zabalit addon
-cd /cesta/k/webkodi
-bash package.sh
+# Klonovat repozitář
+git clone https://github.com/sokolik-tech/plugin.video.moravec.git
+cd plugin.video.moravec
 
 # Zkopírovat přímo do Kodi
 scp -r plugin.video.moravec root@<IP_RPi5>:/storage/.kodi/addons/
@@ -57,7 +57,7 @@ Po instalaci otevřít nastavení addonu:
 | E-mail | Přihlašovací e-mail použitý na moravec.cz |
 | Heslo | Heslo k účtu moravec.cz |
 
-Credentials jsou uloženy v Kodi addon userdata (šifrovaně na disku).
+Credentials jsou uloženy v Kodi addon userdata.
 
 ---
 
@@ -75,7 +75,6 @@ Moravec.cz
 ├── Populace
 └── Předplatné
     ├── [název epizody]  → přehrát
-    ├── [název epizody]  → přehrát
     └── ...
 ```
 
@@ -87,7 +86,7 @@ Přehrávání probíhá přes **HLS (HTTP Live Streaming)** pomocí vestavěné
 
 ### Technologický základ
 
-moravec.cz běží na platformě **[Tivio Studio](https://tivio.studio)** se dvěma hlavními komponentami:
+moravec.cz běží na platformě **[Tivio Studio](https://tivio.studio)** se třemi hlavními komponentami:
 
 ```
 moravec.cz (Next.js / React)
@@ -109,6 +108,7 @@ moravec.cz (Next.js / React)
 plugin.video.moravec/
 ├── addon.xml                   Kodi metadata a závislosti
 ├── addon.py                    Vstupní bod + URL router
+├── icon.png                    Ikona doplňku (180x180)
 └── resources/
     ├── settings.xml            Definice nastavení (e-mail, heslo)
     ├── lib/
@@ -135,12 +135,12 @@ plugin.video.moravec/
    │
    └── api.get_videos_by_tag(tag_id)  nebo  api.get_all_videos()
          Firestore: POST :runQuery
-         filtr: tags ARRAY_CONTAINS <tagRef>  nebo  organizationRef == <orgRef>
+         filtr: tags ARRAY_CONTAINS <tagRef>
        │
 4. Přehrávání
    ├── api.get_stream_url(video_id)
    │     Cloud Function: POST getSourceUrl
-   │     payload: { id, documentType: "video", capabilities: [{codec:"h264", protocol:"hls", encryption:"none"}] }
+   │     payload: { id, documentType:"video", capabilities:[{codec:"h264",protocol:"hls",encryption:"none"}] }
    │     → vrátí: { url: "https://dev.streaming.tivio.studio/v2/.../index.m3u8" }
    │
    └── player.create_hls_item(url, metadata)
@@ -193,24 +193,9 @@ bash package.sh
 ### Rychlé nasazení na RPi5 při vývoji
 
 ```bash
-rsync -av --exclude='*.pyc' --exclude='__pycache__' \
-  plugin.video.moravec/ \
-  root@<IP_RPi5>:/storage/.kodi/addons/plugin.video.moravec/
+scp -r plugin.video.moravec root@<IP_RPi5>:/storage/.kodi/addons/
+ssh root@<IP_RPi5> systemctl restart kodi
 ```
-
----
-
-## Řešení problémů
-
-| Chyba | Příčina | Řešení |
-|---|---|---|
-| `EMAIL_NOT_FOUND` | Chybí `tenantId` v auth requestu | Zkontroluj `FIREBASE_TENANT_ID` v `api.py` |
-| `PERMISSION_DENIED` | Firestore Security Rules | Ujisti se, že přihlašuješ správným účtem |
-| `capabilities is required` | Špatný payload pro `getSourceUrl` | Zkontroluj formát `HLS_CAPABILITIES` v `api.py` |
-| Prázdný seznam pořadů | Žádné tagy s relevantním názvem | Zkontroluj `_IGNORED_TAG_NAMES` v `api.py` |
-| Video se nepřehraje | `inputstream.adaptive` není aktivní | V Kodi aktivuj addon *InputStream Adaptive* |
-| Přehrávání skončí okamžitě | Expirovaná session URL | Znovu klikni na video (URL má omezenou platnost) |
-| Po změně hesla addon nefunguje | Refresh token zneplatněn | Viz níže – addon se zeptá automaticky |
 
 ---
 
@@ -224,19 +209,31 @@ Po změně hesla na moravec.cz:
 4. Pokud je v nastavení nové heslo → přihlásí se bez zásahu uživatele
 5. Pokud je v nastavení staré heslo → zobrazí chybový dialog a otevře nastavení addonu
 
-**Postup po změně hesla:**
+**Postup:**
 1. Změnit heslo na [moravec.cz](https://moravec.cz)
-2. V Kodi otevřít **Settings → Add-ons → My add-ons → Video add-ons → Moravec.cz → Configure**
-3. Zadat nové heslo → uložit
-4. Addon se přihlásí automaticky při dalším použití
+2. V Kodi: **Settings → Add-ons → Moravec.cz → Configure** → zadat nové heslo
+3. Addon se přihlásí automaticky při dalším použití
+
+---
+
+## Řešení problémů
+
+| Chyba | Příčina | Řešení |
+|---|---|---|
+| Prázdný chybový dialog | Špatné heslo v nastavení | Otevři Configure → zkontroluj heslo |
+| `INVALID_PASSWORD` | Heslo nesedí | Zadej aktuální heslo z moravec.cz |
+| `EMAIL_NOT_FOUND` | Chybí `tenantId` v auth | Zkontroluj `FIREBASE_TENANT_ID` v `api.py` |
+| `PERMISSION_DENIED` | Firestore Security Rules | Ujisti se, že přihlašuješ správným účtem |
+| Video se nepřehraje | `inputstream.adaptive` není aktivní | V Kodi aktivuj addon *InputStream Adaptive* |
+| Ikona se nezobrazí | Cache Kodi | Restartuj Kodi |
 
 ---
 
 ## Omezení a rizika
 
 - **Neoficiální addon** – Tivio Studio může kdykoli změnit API bez upozornění
-- **Pouze HLS bez DRM** – videa bez šifrování; pokud Tivio nasadí Widevine povinně, bude potřeba rozšíření
-- **Session URL** – vygenerovaná `.m3u8` URL je platná omezenou dobu (nelze ji uložit napořád)
+- **Pouze HLS bez DRM** – pokud Tivio nasadí Widevine povinně, bude potřeba rozšíření
+- **Session URL** – vygenerovaná `.m3u8` URL je platná omezenou dobu
 - **Závislost na Firestore** – pokud Tivio zpřísní Security Rules, přestane fungovat načítání metadat
 
 ---
